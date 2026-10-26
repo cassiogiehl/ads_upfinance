@@ -8,12 +8,13 @@
 
 - [ ] T001 Create `backend/pyproject.toml` with the dependencies from plan.md, plus ruff, mypy and pytest config
 - [ ] T002 [P] Create the `frontend/` Vite React TS app (`package.json`, `vite.config.ts`, `tsconfig.json`) with react-router, @tanstack/react-query, vitest and @testing-library/react
-- [ ] T003 [P] Create `docker-compose.yml` with services `db` (postgres:16), `api` (uvicorn, depends on db) and `web` (vite dev)
-- [ ] T004 [P] Create the CI workflow: ruff, mypy, pytest, then `npm ci`, `tsc --noEmit`, eslint, vitest, `vite build`
+- [ ] T003 [P] Create `backend/Dockerfile` and `backend/entrypoint.sh` (`alembic upgrade head`, then uvicorn with `--reload`), and `frontend/Dockerfile` (`npm ci`, `vite --host 0.0.0.0`), per research R5. Add `.dockerignore` files
+- [ ] T004 [P] Create the CI workflow. It runs only Docker Compose commands: `docker compose build`, then in `api` ruff, mypy, pytest, and in `web` `tsc --noEmit`, eslint, vitest, `vite build` (Constitution IX)
 - [ ] T005 Create `backend/app/core/config.py` (pydantic-settings), `backend/app/db.py` (engine, SessionLocal, Base) and `backend/app/main.py` (app factory, `/api/v1` prefix, CORS)
 - [ ] T006 Create `backend/app/core/errors.py` with `DomainError` and handlers that produce `{code, message, details}`, mapping `RequestValidationError` to 422 `DADOS_INVALIDOS`
 - [ ] T007 Initialize Alembic (`backend/alembic.ini`, `backend/alembic/env.py`) using `Base.metadata`
 - [ ] T008 Create `backend/tests/conftest.py` with fixtures for an SQLite in-memory engine, `db`, `client`, `auth_headers` (registers and logs in user A) and `other_user_headers` (user B)
+- [ ] T009 Create `docker-compose.yml` (`db` with healthcheck and named volume, `api` with `depends_on: service_healthy`, `web` with the `/api` proxy and a `node_modules` volume), `.env.example`, and add `.env` and `backend/.faturas/` to `.gitignore`. Check that `docker compose up --build` on a clean clone serves `/docs` and the SPA, and that `docker compose run --rm --no-deps api pytest` runs
 
 ## Phase 2: Tests first (they must fail)
 
@@ -44,10 +45,10 @@
 
 ## Phase 5: Polish
 
-- [ ] T028 Write `README.md` at the repo root covering setup, running and testing, with a link to `specs/`
-- [ ] T029 Run quickstart.md manually, including the 360 px check (SC-004)
+- [ ] T028 Write `README.md` at the repo root: Docker and Docker Compose as the only prerequisites, `cp .env.example .env`, `docker compose up --build`, the `docker compose run` commands for tests and lint, and a link to `specs/`
+- [ ] T029 Run quickstart.md manually on a machine with only Docker installed, including the 360 px check (SC-004)
 - [ ] T030 Confirm CI is green
 
 ## Dependencies
 
-T001 → T005 → T006/T007 → T008 → T010–T013 → T014–T021 → T022 → T023 → T024–T027 → T028–T030
+T001/T002/T003 → T005 → T006/T007 → T008 → T009 → T010–T013 → T014–T021 → T022 → T023 → T024–T027 → T028–T030
