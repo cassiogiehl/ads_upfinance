@@ -1,0 +1,42 @@
+digraph AD01 {
+  graph [fontname="DejaVu Sans", fontsize=13, rankdir=TB, nodesep=0.5, ranksep=0.45, newrank=true,
+         label="AD01 — Cadastrar e categorizar movimentação (UC01 «include» UC02)", labelloc=t];
+  node  [fontname="DejaVu Sans", fontsize=11];
+  edge  [fontname="DejaVu Sans", fontsize=10, arrowsize=0.7];
+
+  subgraph cluster_user {
+    label="Usuário"; style=solid; color="#444444"; fontsize=12;
+    ini   [shape=circle, style=filled, fillcolor=black, label="", width=0.25];
+    a1    [shape=box, style=rounded, label="Acessar opção de\ncadastro de movimentação"];
+    a3    [shape=box, style=rounded, label="Informar descrição,\nvalor e tipo\n(entrada / saída)"];
+    a4    [shape=box, style=rounded, label="Selecionar categoria"];
+    a9    [shape=box, style=rounded, label="Corrigir / completar\nos dados"];
+  }
+
+  subgraph cluster_sys {
+    label="Sistema UPFinance"; style=solid; color="#444444"; fontsize=12;
+    a2    [shape=box, style=rounded, label="Apresentar formulário\ne categorias disponíveis"];
+    d1    [shape=diamond, label="", width=0.35, height=0.35];
+    d2    [shape=diamond, label="", width=0.35, height=0.35];
+    a5    [shape=box, style=rounded, label="Identificar o pilar\nassociado à categoria\n(RN002)"];
+    a6    [shape=box, style=rounded, label="Registrar movimentação"];
+    o1    [shape=box, label="m : Movimentacao"];
+    ds    [shape=box, label="«datastore»\nMovimentações"];
+    a7    [shape=box, style=rounded, label="Disponibilizar movimentação\npara consulta"];
+    m1    [shape=diamond, label="", width=0.35, height=0.35];
+    fim   [shape=doublecircle, style=filled, fillcolor=black, label="", width=0.18];
+    msg   [shape=box, style=rounded, label="Informar inconsistência\n(FA01 / FA02)"];
+  }
+
+  ini -> a1 -> a2 -> a3 -> a4 -> m1 -> d1;
+  d1 -> d2   [label="[dados completos]"];
+  d1 -> msg  [label="[dados incompletos]"];
+  d2 -> a5   [label="[valor > 0]"];
+  d2 -> msg  [label="[valor inválido]"];
+  msg -> a9;
+  a9 -> m1   [constraint=false];
+  a5 -> a6;
+  a6 -> o1   [style=dashed];
+  o1 -> ds   [style=dashed];
+  a6 -> a7 -> fim;
+}

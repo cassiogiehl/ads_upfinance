@@ -1,0 +1,38 @@
+digraph AD04 {
+  graph [fontname="DejaVu Sans", fontsize=13, rankdir=TB, nodesep=0.45, ranksep=0.4, newrank=true,
+         label="AD04 — Identificar pagamentos recorrentes e alertar (UC09 «include» UC10)", labelloc=t];
+  node  [fontname="DejaVu Sans", fontsize=11];
+  edge  [fontname="DejaVu Sans", fontsize=10, arrowsize=0.7];
+
+  subgraph cluster_sys {
+    label="Sistema UPFinance"; color="#444444"; fontsize=12;
+    ini  [shape=circle, style=filled, fillcolor=black, label="", width=0.25];
+    ds   [shape=box, label="«datastore»\nMovimentações"];
+    s1   [shape=box, style=rounded, label="Consultar histórico de\nmovimentações de saída"];
+    s2   [shape=box, style=rounded, label="Agrupar saídas por\ndescrição semelhante"];
+    s3   [shape=box, style=rounded, label="Analisar grupo *\n(intervalo entre datas e valor)"];
+    d1   [shape=diamond, label="", width=0.35, height=0.35];
+    s4   [shape=box, style=rounded, label="Registrar pagamento\nrecorrente e próximo vencimento"];
+    op   [shape=box, label="p : PagamentoRecorrente"];
+    s5   [shape=box, style=rounded, label="Gerar alerta de\npagamento recorrente"];
+    m1   [shape=diamond, label="", width=0.35, height=0.35];
+    d2   [shape=diamond, label="", width=0.35, height=0.35];
+    fim  [shape=doublecircle, style=filled, fillcolor=black, label="", width=0.18];
+  }
+
+  subgraph cluster_user {
+    label="Usuário"; color="#444444"; fontsize=12;
+    u1   [shape=box, style=rounded, label="Visualizar alerta de\npagamento recorrente"];
+  }
+
+  ini -> s1;
+  ds -> s1 [style=dashed];
+  s1 -> s2 -> s3 -> d1;
+  d1 -> s4 [label="[≥ 2 ocorrências em\nintervalo regular]"];
+  d1 -> m1 [label="[sem padrão\n(FA01 UC09)]"];
+  s4 -> op [style=dashed];
+  s4 -> s5 -> u1 -> m1;
+  m1 -> d2;
+  d2 -> s3 [label="[há grupos a analisar]", constraint=false];
+  d2 -> fim [label="[todos os grupos\nanalisados]"];
+}

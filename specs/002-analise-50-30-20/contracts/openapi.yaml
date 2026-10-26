@@ -1,0 +1,193 @@
+openapi: 3.1.0
+info:
+  title: "UPFinance API: Análise 50-30-20 e Alertas"
+  version: 0.1.0
+  description: Financial analysis and limit alerts. Feature 002 (UC04–UC06).
+servers:
+  - url: http://localhost:8000/api/v1
+security:
+  - bearerAuth: []
+paths:
+  /analise:
+    get:
+      operationId: analisar
+      summary: Analyze a period with the 50-30-20 rule (UC04, UC05, UC06)
+      description: >
+        Computes the distribution and the interpretation. As a side effect it upserts one
+        AlertaLimite per exceeded pilar for the period (research R2). Without parameters it
+        analyzes the current calendar month.
+      parameters:
+        - { name: inicio, in: query, schema: { type: string, format: date } }
+        - { name: fim, in: query, schema: { type: string, format: date } }
+      responses:
+        '200':
+          description: Either a complete analysis or DADOS_INSUFICIENTES (UC04 FA01)
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/AnaliseFinanceira'
+                  - $ref: '#/components/schemas/DadosInsuficientes'
+                discriminator:
+                  propertyName: situacao
+                  mapping:
+                    COMPLETA: '#/components/schemas/AnaliseFinanceira'
+                    DADOS_INSUFICIENTES: '#/components/schemas/DadosInsuficientes'
+        '401': { $ref: '#/components/responses/NaoAutenticado' }
+        '422':
+          description: PERIODO_INVALIDO (inicio after fim, or only one of the two given)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+  /alertas:
+    get:
+      operationId: listarAlertas
+      summary: List the user's alerts, newest first (UC06, UC10)
+      parameters:
+        - { name: lido, in: query, schema: { type: boolean } }
+        - { name: tipo, in: query, schema: { type: string, enum: [LIMITE, RECORRENCIA] } }
+        - { name: limit, in: query, schema: { type: integer, default: 50, maximum: 200 } }
+        - { name: offset, in: query, schema: { type: integer, default: 0 } }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AlertaPage' }
+        '401': { $ref: '#/components/responses/NaoAutenticado' }
+  /alertas/{id}/lido:
+    patch:
+      operationId: marcarAlertaLido
+      summary: Mark an alert as read (Alerta.marcarComoLido)
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Alerta' }
+        '401': { $ref: '#/components/responses/NaoAutenticado' }
+        '404':
+          description: NAO_ENCONTRADO
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+components:
+  securitySchemes:
+    bearerAuth: { type: http, scheme: bearer, bearerFormat: JWT }
+  responses:
+    NaoAutenticado:
+      description: NAO_AUTENTICADO
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+  schemas:
+    Error:
+      type: object
+      required: [code, message]
+      properties:
+        code: { type: string }
+        message: { type: string }
+        details: { type: object, additionalProperties: true }
+    Pilar:
+      type: string
+      enum: [ESSENCIAL, PESSOAL, FUTURO]
+    Money:
+      type: string
+      pattern: '^-?\d{1,10}\.\d{2}$'
+    Percent:
+      type: string
+      description: Ratio as a decimal string with 4 decimal places (0.8000 = 80%)
+      example: '1.1667'
+    DistribuicaoPilar:
+      type: object
+      required: [pilar, total_gasto, limite, percentual_utilizado, percentual_da_renda, excedido, excedente]
+      properties:
+        pilar: { $ref: '#/components/schemas/Pilar' }
+        total_gasto: { $ref: '#/components/schemas/Money' }
+        limite: { $ref: '#/components/schemas/Money' }
+        percentual_utilizado: { $ref: '#/components/schemas/Percent' }
+        percentual_da_renda: { $ref: '#/components/schemas/Percent' }
+        excedido: { type: boolean }
+        excedente: { $ref: '#/components/schemas/Money' }
+    InterpretacaoItem:
+      type: object
+      required: [chave, texto]
+      properties:
+        chave: { type: string, example: pilar_excedido }
+        pilar:
+          oneOf:
+            - $ref: '#/components/schemas/Pilar'
+            - type: 'null'
+        texto: { type: string }
+    AnaliseFinanceira:
+      type: object
+      required: [situacao, periodo_inicio, periodo_fim, renda, total_saidas, saldo, distribuicoes, interpretacao, interpretacao_itens, pilares_excedidos, alertas_gerados, gerada_em]
+      properties:
+        situacao: { type: string, const: COMPLETA }
+        periodo_inicio: { type: string, format: date }
+        periodo_fim: { type: string, format: date }
+        renda: { $ref: '#/components/schemas/Money' }
+        total_saidas: { $ref: '#/components/schemas/Money' }
+        saldo: { $ref: '#/components/schemas/Money' }
+        distribuicoes:
+          type: array
+          minItems: 3
+          maxItems: 3
+          items: { $ref: '#/components/schemas/DistribuicaoPilar' }
+        interpretacao: { type: string }
+        interpretacao_itens:
+          type: array
+          items: { $ref: '#/components/schemas/InterpretacaoItem' }
+        pilares_excedidos:
+          type: array
+          items: { $ref: '#/components/schemas/Pilar' }
+        alertas_gerados:
+          type: array
+          maxItems: 3
+          items: { $ref: '#/components/schemas/Alerta' }
+        gerada_em: { type: string, format: date-time }
+    DadosInsuficientes:
+      type: object
+      required: [situacao, periodo_inicio, periodo_fim, mensagem]
+      properties:
+        situacao: { type: string, const: DADOS_INSUFICIENTES }
+        periodo_inicio: { type: string, format: date }
+        periodo_fim: { type: string, format: date }
+        mensagem:
+          type: string
+          example: São necessários registros de entradas e saídas no período para realizar a análise.
+    Alerta:
+      type: object
+      description: >
+        Single-table inheritance. LIMITE uses pilar, valor_excedido and periodo_*. RECORRENCIA
+        uses pagamento_recorrente_id and proximo_vencimento (feature 004).
+      required: [id, tipo, mensagem, data_emissao, lido]
+      properties:
+        id: { type: integer }
+        tipo: { type: string, enum: [LIMITE, RECORRENCIA] }
+        mensagem: { type: string }
+        data_emissao: { type: string, format: date-time }
+        lido: { type: boolean }
+        pilar:
+          oneOf:
+            - $ref: '#/components/schemas/Pilar'
+            - type: 'null'
+        valor_excedido:
+          oneOf:
+            - $ref: '#/components/schemas/Money'
+            - type: 'null'
+        periodo_inicio: { type: [string, 'null'], format: date }
+        periodo_fim: { type: [string, 'null'], format: date }
+        pagamento_recorrente_id: { type: [integer, 'null'] }
+        proximo_vencimento: { type: [string, 'null'], format: date }
+    AlertaPage:
+      type: object
+      required: [items, total, total_nao_lidos]
+      properties:
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/Alerta' }
+        total: { type: integer }
+        total_nao_lidos: { type: integer }

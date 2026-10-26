@@ -1,0 +1,56 @@
+digraph AD02 {
+  graph [fontname="DejaVu Sans", fontsize=13, rankdir=TB, nodesep=0.45, ranksep=0.4, newrank=true,
+         label="AD02 — Analisar situação financeira 50-30-20 (UC04, UC05 «include» UC04, UC06 «extend» UC05)", labelloc=t];
+  node  [fontname="DejaVu Sans", fontsize=11];
+  edge  [fontname="DejaVu Sans", fontsize=10, arrowsize=0.7];
+
+  subgraph cluster_user {
+    label="Usuário"; color="#444444"; fontsize=12;
+    ini  [shape=circle, style=filled, fillcolor=black, label="", width=0.25];
+    u1   [shape=box, style=rounded, label="Solicitar análise\nfinanceira"];
+    u2   [shape=box, style=rounded, label="Visualizar distribuição\ne interpretação"];
+    u3   [shape=box, style=rounded, label="Visualizar alerta\nde limite"];
+    u4   [shape=box, style=rounded, label="Visualizar aviso de\ndados insuficientes"];
+  }
+
+  subgraph cluster_sys {
+    label="Sistema UPFinance"; color="#444444"; fontsize=12;
+    ds   [shape=box, label="«datastore»\nMovimentações"];
+    s1   [shape=box, style=rounded, label="Consultar movimentações\ndo período"];
+    d1   [shape=diamond, label="", width=0.35, height=0.35];
+    s2   [shape=box, style=rounded, label="Calcular renda do período\n(soma das entradas)"];
+    s3   [shape=box, style=rounded, label="Classificar saídas por pilar\n(categoria → pilar, RN002)"];
+    fk   [shape=box, style=filled, fillcolor=black, label="", width=4.2, height=0.06, fixedsize=true];
+    pE   [shape=box, style=rounded, label="Totalizar Essencial\nlimite = 50% renda"];
+    pP   [shape=box, style=rounded, label="Totalizar Pessoal\nlimite = 30% renda"];
+    pF   [shape=box, style=rounded, label="Totalizar Futuro\nlimite = 20% renda"];
+    jn   [shape=box, style=filled, fillcolor=black, label="", width=4.2, height=0.06, fixedsize=true];
+    obj  [shape=box, label="a : AnaliseFinanceira"];
+    s4   [shape=box, style=rounded, label="Comparar total × limite\nde cada pilar (RN001, RN003)"];
+    d2   [shape=diamond, label="", width=0.35, height=0.35];
+    s5   [shape=box, style=rounded, label="Gerar alerta de limite\npara o(s) pilar(es) excedido(s)"];
+    s6   [shape=box, style=rounded, label="Montar interpretação\ndeterminística"];
+    m1   [shape=diamond, label="", width=0.35, height=0.35];
+    s7   [shape=box, style=rounded, label="Informar que são\nnecessários registros (FA01)"];
+    fim  [shape=doublecircle, style=filled, fillcolor=black, label="", width=0.18];
+  }
+
+  ini -> u1 -> s1;
+  ds -> s1 [style=dashed];
+  s1 -> d1;
+  d1 -> s2 [label="[há entradas e saídas]"];
+  d1 -> s7 [label="[sem movimentações\nou renda = 0]"];
+  s7 -> u4 -> fim;
+  s2 -> s3 -> fk;
+  fk -> pE; fk -> pP; fk -> pF;
+  pE -> jn; pP -> jn; pF -> jn;
+  jn -> s4;
+  s4 -> obj [style=dashed];
+  s4 -> d2;
+  d2 -> s5 [label="[algum pilar\n> limite]"];
+  d2 -> m1 [label="[todos dentro\ndo limite]"];
+  s5 -> u3;
+  u3 -> m1;
+  m1 -> s6 -> u2;
+  u2 -> fim;
+}

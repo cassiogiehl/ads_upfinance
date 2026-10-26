@@ -1,0 +1,162 @@
+openapi: 3.1.0
+info:
+  title: "UPFinance API: Pagamentos recorrentes"
+  version: 0.1.0
+  description: >
+    Identification of recurring payments and their alerts. Feature 004 (UC09, UC10).
+    Recurrence alerts are listed through GET /alertas (feature 002 contract) with tipo=RECORRENCIA.
+servers:
+  - url: http://localhost:8000/api/v1
+security:
+  - bearerAuth: []
+paths:
+  /recorrencias/identificar:
+    post:
+      operationId: identificarRecorrencias
+      summary: Run identification on the user's history now (UC09; also runs automatically, see research R8)
+      responses:
+        '200':
+          description: OK. `novas` = 0 and an empty `itens` list mean UC09 FA01
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ResultadoIdentificacao' }
+        '401': { $ref: '#/components/responses/NaoAutenticado' }
+  /recorrencias:
+    get:
+      operationId: listarRecorrencias
+      summary: List recurring payments ordered by next due date (US4)
+      parameters:
+        - name: situacao
+          in: query
+          schema: { type: string, enum: [ATIVOS, INATIVOS, DESCARTADOS, TODOS], default: ATIVOS }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/PagamentoRecorrente' }
+        '401': { $ref: '#/components/responses/NaoAutenticado' }
+  /recorrencias/{id}:
+    get:
+      operationId: obterRecorrencia
+      summary: Recurrence with the movements it is based on
+      parameters:
+        - { $ref: '#/components/parameters/Id' }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PagamentoRecorrenteDetalhe' }
+        '401': { $ref: '#/components/responses/NaoAutenticado' }
+        '404': { $ref: '#/components/responses/NaoEncontrado' }
+    patch:
+      operationId: atualizarRecorrencia
+      summary: Dismiss or restore a recurrence (US5, research R5)
+      parameters:
+        - { $ref: '#/components/parameters/Id' }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [descartado]
+              properties:
+                descartado: { type: boolean }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PagamentoRecorrente' }
+        '401': { $ref: '#/components/responses/NaoAutenticado' }
+        '404': { $ref: '#/components/responses/NaoEncontrado' }
+components:
+  securitySchemes:
+    bearerAuth: { type: http, scheme: bearer, bearerFormat: JWT }
+  parameters:
+    Id:
+      name: id
+      in: path
+      required: true
+      schema: { type: integer }
+  responses:
+    NaoAutenticado:
+      description: NAO_AUTENTICADO
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    NaoEncontrado:
+      description: NAO_ENCONTRADO
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+  schemas:
+    Error:
+      type: object
+      required: [code, message]
+      properties:
+        code: { type: string }
+        message: { type: string }
+        details: { type: object, additionalProperties: true }
+    Money:
+      type: string
+      pattern: '^\d{1,10}\.\d{2}$'
+    Frequencia:
+      type: string
+      enum: [SEMANAL, MENSAL, ANUAL]
+    PagamentoRecorrente:
+      type: object
+      required: [id, descricao, valor_medio, periodicidade_dias, frequencia, ultima_ocorrencia, proximo_vencimento, qtd_ocorrencias, ativo, descartado]
+      properties:
+        id: { type: integer }
+        descricao: { type: string }
+        categoria:
+          oneOf:
+            - type: object
+              required: [id, nome]
+              properties:
+                id: { type: integer }
+                nome: { type: string }
+                pilar: { type: string, enum: [ESSENCIAL, PESSOAL, FUTURO] }
+            - type: 'null'
+        valor_medio: { $ref: '#/components/schemas/Money' }
+        periodicidade_dias: { type: integer, enum: [7, 30, 365] }
+        frequencia: { $ref: '#/components/schemas/Frequencia' }
+        ultima_ocorrencia: { type: string, format: date }
+        proximo_vencimento: { type: string, format: date }
+        dias_para_vencimento: { type: integer }
+        qtd_ocorrencias: { type: integer, minimum: 2 }
+        ativo: { type: boolean }
+        descartado: { type: boolean }
+    MovimentacaoResumo:
+      type: object
+      required: [id, descricao, valor, data]
+      properties:
+        id: { type: integer }
+        descricao: { type: string }
+        valor: { $ref: '#/components/schemas/Money' }
+        data: { type: string, format: date }
+    PagamentoRecorrenteDetalhe:
+      allOf:
+        - $ref: '#/components/schemas/PagamentoRecorrente'
+        - type: object
+          required: [movimentacoes]
+          properties:
+            movimentacoes:
+              type: array
+              minItems: 2
+              items: { $ref: '#/components/schemas/MovimentacaoResumo' }
+    ResultadoIdentificacao:
+      type: object
+      required: [novas, atualizadas, total_ativas, itens]
+      properties:
+        novas: { type: integer }
+        atualizadas: { type: integer }
+        total_ativas: { type: integer }
+        itens:
+          type: array
+          items: { $ref: '#/components/schemas/PagamentoRecorrente' }

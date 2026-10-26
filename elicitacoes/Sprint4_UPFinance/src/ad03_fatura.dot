@@ -1,0 +1,47 @@
+digraph AD03 {
+  graph [fontname="DejaVu Sans", fontsize=13, rankdir=TB, nodesep=0.45, ranksep=0.4, newrank=true,
+         label="AD03 — Enviar e interpretar fatura do cartão (UC07 «include» UC08)", labelloc=t];
+  node  [fontname="DejaVu Sans", fontsize=11];
+  edge  [fontname="DejaVu Sans", fontsize=10, arrowsize=0.7];
+
+  subgraph cluster_user {
+    label="Usuário"; color="#444444"; fontsize=12;
+    ini  [shape=circle, style=filled, fillcolor=black, label="", width=0.25];
+    u1   [shape=box, style=rounded, label="Acessar opção de\nenvio de fatura"];
+    u2   [shape=box, style=rounded, label="Selecionar arquivo"];
+    u3   [shape=box, style=rounded, label="Revisar gastos\nidentificados"];
+    u4   [shape=box, style=rounded, label="Ajustar categorias\n(se necessário)"];
+  }
+
+  subgraph cluster_sys {
+    label="Sistema UPFinance"; color="#444444"; fontsize=12;
+    m0   [shape=diamond, label="", width=0.35, height=0.35];
+    s1   [shape=box, style=rounded, label="Receber e verificar arquivo"];
+    d1   [shape=diamond, label="", width=0.35, height=0.35];
+    sE1  [shape=box, style=rounded, label="Solicitar envio\nem PDF (FA01 UC07)"];
+    of   [shape=box, label="f : Fatura"];
+    s2   [shape=box, style=rounded, label="Ler conteúdo do PDF"];
+    d2   [shape=diamond, label="", width=0.35, height=0.35];
+    sE2  [shape=box, style=rounded, label="Informar que a fatura não\npôde ser interpretada (FA01 UC08)"];
+    s3   [shape=box, style=rounded, label="Identificar gastos *\n(data, descrição, valor)"];
+    s4   [shape=box, style=rounded, label="Sugerir categoria\npara cada gasto"];
+    s5   [shape=box, style=rounded, label="Registrar gastos como\nmovimentações de saída"];
+    ds   [shape=box, label="«datastore»\nMovimentações"];
+    fim  [shape=doublecircle, style=filled, fillcolor=black, label="", width=0.18];
+    fim2 [shape=doublecircle, style=filled, fillcolor=black, label="", width=0.18];
+  }
+
+  ini -> u1 -> m0 -> u2 -> s1 -> d1;
+  d1 -> sE1 [label="[não é PDF]"];
+  sE1 -> m0;
+  d1 -> s2  [label="[PDF válido]"];
+  s1 -> of  [style=dashed];
+  of -> s2  [style=dashed];
+  s2 -> d2;
+  d2 -> sE2 [label="[formato não\nreconhecido]"];
+  sE2 -> fim2;
+  d2 -> s3  [label="[formato\nreconhecido]"];
+  s3 -> s4 -> u3 -> u4 -> s5;
+  s5 -> ds  [style=dashed];
+  s5 -> fim;
+}

@@ -1,0 +1,212 @@
+openapi: 3.1.0
+info:
+  title: "UPFinance API: Fatura do cartão"
+  version: 0.1.0
+  description: Upload, interpret, review and confirm credit-card invoices. Feature 003 (UC07, UC08).
+servers:
+  - url: http://localhost:8000/api/v1
+security:
+  - bearerAuth: []
+paths:
+  /faturas:
+    post:
+      operationId: enviarFatura
+      summary: Upload a PDF invoice and interpret it synchronously (UC07 → UC08)
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [arquivo]
+              properties:
+                arquivo:
+                  type: string
+                  contentMediaType: application/pdf
+      responses:
+        '201':
+          description: >
+            Received. The status is INTERPRETADA (items to review) or NAO_INTERPRETADA
+            (UC08 FA01, with motivo_falha set)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/FaturaDetalhe' }
+        '401': { $ref: '#/components/responses/NaoAutenticado' }
+        '409':
+          description: FATURA_DUPLICADA
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '413':
+          description: ARQUIVO_MUITO_GRANDE (> 10 MB)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '415':
+          description: ARQUIVO_NAO_PDF (UC07 FA01)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+    get:
+      operationId: listarFaturas
+      summary: Invoice history (US4)
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/FaturaResumo' }
+        '401': { $ref: '#/components/responses/NaoAutenticado' }
+  /faturas/{id}:
+    get:
+      operationId: obterFatura
+      summary: Invoice with its extracted items, for review
+      parameters:
+        - { $ref: '#/components/parameters/Id' }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/FaturaDetalhe' }
+        '401': { $ref: '#/components/responses/NaoAutenticado' }
+        '404': { $ref: '#/components/responses/NaoEncontrado' }
+  /faturas/{id}/confirmar:
+    post:
+      operationId: confirmarFatura
+      summary: Apply the review and create SAIDA movements (AD03 "Registrar gastos")
+      description: >
+        Atomic. The body carries the user's final choice for each item. Items not listed keep
+        their current values. Creates one Movimentacao per included item.
+      parameters:
+        - { $ref: '#/components/parameters/Id' }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                itens:
+                  type: array
+                  items: { $ref: '#/components/schemas/AjusteItem' }
+      responses:
+        '200':
+          description: Confirmed
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ConfirmacaoResultado' }
+        '401': { $ref: '#/components/responses/NaoAutenticado' }
+        '404': { $ref: '#/components/responses/NaoEncontrado' }
+        '409':
+          description: FATURA_JA_CONFIRMADA · FATURA_NAO_INTERPRETADA
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '422':
+          description: >
+            CATEGORIA_OBRIGATORIA (details.itens lists the item ids without a category) ·
+            CATEGORIA_INCOMPATIVEL · NENHUM_ITEM_INCLUIDO
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+components:
+  securitySchemes:
+    bearerAuth: { type: http, scheme: bearer, bearerFormat: JWT }
+  parameters:
+    Id:
+      name: id
+      in: path
+      required: true
+      schema: { type: integer }
+  responses:
+    NaoAutenticado:
+      description: NAO_AUTENTICADO
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    NaoEncontrado:
+      description: NAO_ENCONTRADO
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+  schemas:
+    Error:
+      type: object
+      required: [code, message]
+      properties:
+        code: { type: string }
+        message: { type: string }
+        details: { type: object, additionalProperties: true }
+    Money:
+      type: string
+      pattern: '^\d{1,10}\.\d{2}$'
+    StatusFatura:
+      type: string
+      enum: [RECEBIDA, INTERPRETADA, NAO_INTERPRETADA, CONFIRMADA]
+    CategoriaRef:
+      type: object
+      required: [id, nome, pilar]
+      properties:
+        id: { type: integer }
+        nome: { type: string }
+        pilar: { type: string, enum: [ESSENCIAL, PESSOAL, FUTURO] }
+    ItemFatura:
+      type: object
+      required: [id, ordem, data, descricao, valor, incluir]
+      properties:
+        id: { type: integer }
+        ordem: { type: integer }
+        data: { type: string, format: date }
+        descricao: { type: string }
+        valor: { $ref: '#/components/schemas/Money' }
+        categoria_sugerida:
+          oneOf:
+            - $ref: '#/components/schemas/CategoriaRef'
+            - type: 'null'
+        categoria:
+          oneOf:
+            - $ref: '#/components/schemas/CategoriaRef'
+            - type: 'null'
+        incluir: { type: boolean }
+        movimentacao_id: { type: [integer, 'null'] }
+    FaturaResumo:
+      type: object
+      required: [id, nome_arquivo, data_envio, status, qtd_itens, qtd_movimentacoes]
+      properties:
+        id: { type: integer }
+        nome_arquivo: { type: string }
+        data_envio: { type: string, format: date-time }
+        status: { $ref: '#/components/schemas/StatusFatura' }
+        motivo_falha: { type: [string, 'null'] }
+        qtd_itens: { type: integer }
+        qtd_movimentacoes: { type: integer }
+    FaturaDetalhe:
+      allOf:
+        - $ref: '#/components/schemas/FaturaResumo'
+        - type: object
+          required: [itens, total_itens_incluidos]
+          properties:
+            interpretador: { type: [string, 'null'] }
+            data_referencia: { type: [string, 'null'], format: date }
+            itens:
+              type: array
+              items: { $ref: '#/components/schemas/ItemFatura' }
+            total_itens_incluidos: { $ref: '#/components/schemas/Money' }
+    AjusteItem:
+      type: object
+      required: [item_id]
+      properties:
+        item_id: { type: integer }
+        categoria_id: { type: [integer, 'null'] }
+        incluir: { type: boolean }
+    ConfirmacaoResultado:
+      type: object
+      required: [fatura_id, status, movimentacoes_criadas, total]
+      properties:
+        fatura_id: { type: integer }
+        status: { type: string, const: CONFIRMADA }
+        movimentacoes_criadas: { type: integer }
+        total: { $ref: '#/components/schemas/Money' }

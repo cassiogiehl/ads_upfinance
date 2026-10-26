@@ -1,0 +1,171 @@
+openapi: 3.1.0
+info:
+  title: "UPFinance API: Foundation"
+  version: 0.1.0
+  description: Auth and category catalog. Feature 000-foundation.
+servers:
+  - url: http://localhost:8000/api/v1
+security:
+  - bearerAuth: []
+paths:
+  /auth/register:
+    post:
+      operationId: register
+      summary: Create an account (US1)
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RegisterRequest' }
+      responses:
+        '201':
+          description: Account created, user signed in
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/TokenResponse' }
+        '409':
+          description: EMAIL_JA_CADASTRADO
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '422':
+          description: DADOS_INVALIDOS
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+  /auth/login:
+    post:
+      operationId: login
+      summary: Sign in (US2)
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LoginRequest' }
+      responses:
+        '200':
+          description: Signed in
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/TokenResponse' }
+        '401':
+          description: CREDENCIAIS_INVALIDAS
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+  /usuarios/me:
+    get:
+      operationId: getMe
+      summary: Current user
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Usuario' }
+        '401':
+          description: NAO_AUTENTICADO
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+  /categorias:
+    get:
+      operationId: listCategorias
+      summary: List the fixed category catalog (US3, RF003, RN002)
+      parameters:
+        - name: tipo
+          in: query
+          required: false
+          schema: { $ref: '#/components/schemas/TipoMovimentacao' }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Categoria' }
+        '401':
+          description: NAO_AUTENTICADO
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+  /pilares:
+    get:
+      operationId: listPilares
+      summary: Fixed pilares and percentages (RN001, RN004)
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/PilarInfo' }
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    Error:
+      type: object
+      required: [code, message]
+      properties:
+        code: { type: string, example: DADOS_INVALIDOS }
+        message: { type: string }
+        details: { type: object, additionalProperties: true }
+    RegisterRequest:
+      type: object
+      required: [nome, email, senha]
+      properties:
+        nome: { type: string, minLength: 1, maxLength: 120 }
+        email: { type: string, format: email, maxLength: 254 }
+        senha: { type: string, minLength: 8, maxLength: 128 }
+    LoginRequest:
+      type: object
+      required: [email, senha]
+      properties:
+        email: { type: string, format: email }
+        senha: { type: string }
+    TokenResponse:
+      type: object
+      required: [access_token, token_type, usuario]
+      properties:
+        access_token: { type: string }
+        token_type: { type: string, enum: [bearer] }
+        usuario: { $ref: '#/components/schemas/Usuario' }
+    Usuario:
+      type: object
+      required: [id, nome, email]
+      properties:
+        id: { type: integer }
+        nome: { type: string }
+        email: { type: string, format: email }
+    TipoMovimentacao:
+      type: string
+      enum: [ENTRADA, SAIDA]
+    Pilar:
+      type: string
+      enum: [ESSENCIAL, PESSOAL, FUTURO]
+    PilarInfo:
+      type: object
+      required: [pilar, percentual, label]
+      properties:
+        pilar: { $ref: '#/components/schemas/Pilar' }
+        percentual: { type: string, description: Decimal as string, example: '0.50' }
+        label: { type: string, example: Essencial }
+    Categoria:
+      type: object
+      required: [id, nome, tipo]
+      properties:
+        id: { type: integer }
+        nome: { type: string }
+        tipo: { $ref: '#/components/schemas/TipoMovimentacao' }
+        pilar:
+          oneOf:
+            - $ref: '#/components/schemas/Pilar'
+            - type: 'null'

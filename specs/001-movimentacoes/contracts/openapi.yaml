@@ -1,0 +1,179 @@
+openapi: 3.1.0
+info:
+  title: "UPFinance API: Movimentações"
+  version: 0.1.0
+  description: Register, categorize and list movements. Feature 001 (UC01–UC03).
+servers:
+  - url: http://localhost:8000/api/v1
+security:
+  - bearerAuth: []
+paths:
+  /movimentacoes:
+    post:
+      operationId: cadastrarMovimentacao
+      summary: Register a movement (UC01, RF001)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/MovimentacaoIn' }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MovimentacaoOut' }
+        '401': { $ref: '#/components/responses/NaoAutenticado' }
+        '422':
+          description: >
+            DADOS_INCOMPLETOS (UC01 FA01) · VALOR_INVALIDO (UC01 FA02) ·
+            CATEGORIA_INEXISTENTE · CATEGORIA_INCOMPATIVEL
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+              examples:
+                incompletos:
+                  value: { code: DADOS_INCOMPLETOS, message: Preencha os campos obrigatórios., details: { campos: [descricao, categoria_id] } }
+                valor:
+                  value: { code: VALOR_INVALIDO, message: Informe um valor maior que zero com até 2 casas decimais. }
+    get:
+      operationId: listarMovimentacoes
+      summary: List the user's movements, newest first (UC03, RF004)
+      parameters:
+        - { name: inicio, in: query, schema: { type: string, format: date } }
+        - { name: fim, in: query, schema: { type: string, format: date } }
+        - { name: tipo, in: query, schema: { $ref: '#/components/schemas/TipoMovimentacao' } }
+        - { name: limit, in: query, schema: { type: integer, default: 50, minimum: 1, maximum: 200 } }
+        - { name: offset, in: query, schema: { type: integer, default: 0, minimum: 0 } }
+      responses:
+        '200':
+          description: OK. An empty `items` list means UC03 FA01
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MovimentacaoPage' }
+        '401': { $ref: '#/components/responses/NaoAutenticado' }
+  /movimentacoes/{id}:
+    get:
+      operationId: obterMovimentacao
+      parameters:
+        - { $ref: '#/components/parameters/Id' }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MovimentacaoOut' }
+        '401': { $ref: '#/components/responses/NaoAutenticado' }
+        '404': { $ref: '#/components/responses/NaoEncontrado' }
+  /movimentacoes/{id}/categoria:
+    patch:
+      operationId: categorizarMovimentacao
+      summary: Change the category of a movement (UC02, RF002/RF003)
+      parameters:
+        - { $ref: '#/components/parameters/Id' }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                categoria_id: { type: [integer, 'null'] }
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MovimentacaoOut' }
+        '401': { $ref: '#/components/responses/NaoAutenticado' }
+        '404': { $ref: '#/components/responses/NaoEncontrado' }
+        '422':
+          description: CATEGORIA_OBRIGATORIA (UC02 FA01) · CATEGORIA_INEXISTENTE · CATEGORIA_INCOMPATIVEL
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+components:
+  securitySchemes:
+    bearerAuth: { type: http, scheme: bearer, bearerFormat: JWT }
+  parameters:
+    Id:
+      name: id
+      in: path
+      required: true
+      schema: { type: integer }
+  responses:
+    NaoAutenticado:
+      description: NAO_AUTENTICADO
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    NaoEncontrado:
+      description: NAO_ENCONTRADO (also returned for another user's resource)
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+  schemas:
+    Error:
+      type: object
+      required: [code, message]
+      properties:
+        code: { type: string }
+        message: { type: string }
+        details: { type: object, additionalProperties: true }
+    TipoMovimentacao:
+      type: string
+      enum: [ENTRADA, SAIDA]
+    Pilar:
+      type: string
+      enum: [ESSENCIAL, PESSOAL, FUTURO]
+    Money:
+      type: string
+      pattern: '^\d{1,10}\.\d{2}$'
+      example: '1500.00'
+    MovimentacaoIn:
+      type: object
+      description: All fields are optional at schema level so the service can return FA-specific codes (research R3).
+      properties:
+        descricao: { type: [string, 'null'], maxLength: 200 }
+        valor:
+          description: Decimal as a string or a number, > 0, max 2 decimal places
+          oneOf:
+            - { type: string }
+            - { type: number }
+            - { type: 'null' }
+        tipo:
+          oneOf:
+            - $ref: '#/components/schemas/TipoMovimentacao'
+            - type: 'null'
+        categoria_id: { type: [integer, 'null'] }
+        data: { type: [string, 'null'], format: date, description: Defaults to today (research R1) }
+    CategoriaRef:
+      type: object
+      required: [id, nome]
+      properties:
+        id: { type: integer }
+        nome: { type: string }
+    MovimentacaoOut:
+      type: object
+      required: [id, descricao, valor, data, tipo, categoria, criado_em]
+      properties:
+        id: { type: integer }
+        descricao: { type: string }
+        valor: { $ref: '#/components/schemas/Money' }
+        data: { type: string, format: date }
+        tipo: { $ref: '#/components/schemas/TipoMovimentacao' }
+        categoria: { $ref: '#/components/schemas/CategoriaRef' }
+        pilar:
+          oneOf:
+            - $ref: '#/components/schemas/Pilar'
+            - type: 'null'
+        fatura_id: { type: [integer, 'null'] }
+        criado_em: { type: string, format: date-time }
+    MovimentacaoPage:
+      type: object
+      required: [items, total]
+      properties:
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/MovimentacaoOut' }
+        total: { type: integer }

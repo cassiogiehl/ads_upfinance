@@ -1,0 +1,49 @@
+digraph Classes {
+graph [fontname="DejaVu Sans", fontsize=14, label="Diagrama de Classes — UPFinance (Sprint 4)", labelloc=t, rankdir=TB, nodesep=0.6, ranksep=0.9, splines=true];
+node [shape=plaintext, fontname="DejaVu Sans", fontsize=10];
+edge [fontname="DejaVu Sans", fontsize=9, arrowsize=0.8];
+Usuario [label=<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="4"><TR><TD BGCOLOR="#FFF8DC"><B>Usuario</B></TD></TR><TR><TD ALIGN="LEFT">- id : Long<BR ALIGN="LEFT"/>- nome : String<BR ALIGN="LEFT"/>- email : String<BR ALIGN="LEFT"/></TD></TR><TR><TD ALIGN="LEFT">+ cadastrarMovimentacao(m : Movimentacao)<BR ALIGN="LEFT"/>+ enviarFatura(arquivo : Arquivo) : Fatura<BR ALIGN="LEFT"/>+ solicitarAnalise(periodo : Periodo) : AnaliseFinanceira<BR ALIGN="LEFT"/>+ getMovimentacoes(periodo : Periodo) : List&lt;Movimentacao&gt;<BR ALIGN="LEFT"/></TD></TR></TABLE>>];
+Movimentacao [label=<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="4"><TR><TD BGCOLOR="#FFF8DC"><B>Movimentacao</B></TD></TR><TR><TD ALIGN="LEFT">- id : Long<BR ALIGN="LEFT"/>- descricao : String<BR ALIGN="LEFT"/>- valor : BigDecimal<BR ALIGN="LEFT"/>- data : LocalDate<BR ALIGN="LEFT"/>- tipo : TipoMovimentacao<BR ALIGN="LEFT"/></TD></TR><TR><TD ALIGN="LEFT">+ categorizar(c : Categoria)<BR ALIGN="LEFT"/>+ getPilar() : Pilar<BR ALIGN="LEFT"/>+ isSaida() : boolean<BR ALIGN="LEFT"/></TD></TR></TABLE>>];
+Categoria [label=<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="4"><TR><TD BGCOLOR="#FFF8DC"><B>Categoria</B></TD></TR><TR><TD ALIGN="LEFT">- id : Long<BR ALIGN="LEFT"/>- nome : String<BR ALIGN="LEFT"/>- pilar : Pilar<BR ALIGN="LEFT"/></TD></TR><TR><TD ALIGN="LEFT">+ getPilar() : Pilar<BR ALIGN="LEFT"/></TD></TR></TABLE>>];
+Pilar [label=<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="4"><TR><TD BGCOLOR="#FFF8DC"><FONT POINT-SIZE="9">«enumeration»</FONT><BR/><B>Pilar</B></TD></TR><TR><TD ALIGN="LEFT">ESSENCIAL (0.50)<BR ALIGN="LEFT"/>PESSOAL (0.30)<BR ALIGN="LEFT"/>FUTURO (0.20)<BR ALIGN="LEFT"/>- percentual : BigDecimal<BR ALIGN="LEFT"/></TD></TR><TR><TD ALIGN="LEFT">+ calcularLimite(renda : BigDecimal) : BigDecimal<BR ALIGN="LEFT"/></TD></TR></TABLE>>];
+TipoMovimentacao [label=<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="4"><TR><TD BGCOLOR="#FFF8DC"><FONT POINT-SIZE="9">«enumeration»</FONT><BR/><B>TipoMovimentacao</B></TD></TR><TR><TD ALIGN="LEFT">ENTRADA<BR ALIGN="LEFT"/>SAIDA<BR ALIGN="LEFT"/></TD></TR><TR><TD ALIGN="LEFT"> </TD></TR></TABLE>>];
+Fatura [label=<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="4"><TR><TD BGCOLOR="#FFF8DC"><B>Fatura</B></TD></TR><TR><TD ALIGN="LEFT">- id : Long<BR ALIGN="LEFT"/>- nomeArquivo : String<BR ALIGN="LEFT"/>- dataEnvio : LocalDate<BR ALIGN="LEFT"/>- status : StatusFatura<BR ALIGN="LEFT"/></TD></TR><TR><TD ALIGN="LEFT">+ marcarInterpretada()<BR ALIGN="LEFT"/>+ marcarFalha(motivo : String)<BR ALIGN="LEFT"/></TD></TR></TABLE>>];
+StatusFatura [label=<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="4"><TR><TD BGCOLOR="#FFF8DC"><FONT POINT-SIZE="9">«enumeration»</FONT><BR/><B>StatusFatura</B></TD></TR><TR><TD ALIGN="LEFT">RECEBIDA<BR ALIGN="LEFT"/>INTERPRETADA<BR ALIGN="LEFT"/>NAO_INTERPRETADA<BR ALIGN="LEFT"/></TD></TR><TR><TD ALIGN="LEFT"> </TD></TR></TABLE>>];
+InterpretadorFatura [label=<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="4"><TR><TD BGCOLOR="#FFF8DC"><FONT POINT-SIZE="9">«interface»</FONT><BR/><B>InterpretadorFatura</B></TD></TR><TR><TD ALIGN="LEFT"> </TD></TR><TR><TD ALIGN="LEFT">+ suporta(f : Fatura) : boolean<BR ALIGN="LEFT"/>+ interpretar(f : Fatura) : List&lt;Movimentacao&gt;<BR ALIGN="LEFT"/></TD></TR></TABLE>>];
+InterpretadorFaturaPDF [label=<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="4"><TR><TD BGCOLOR="#FFF8DC"><B>InterpretadorFaturaPDF</B></TD></TR><TR><TD ALIGN="LEFT"> </TD></TR><TR><TD ALIGN="LEFT">+ suporta(f : Fatura) : boolean<BR ALIGN="LEFT"/>+ interpretar(f : Fatura) : List&lt;Movimentacao&gt;<BR ALIGN="LEFT"/></TD></TR></TABLE>>];
+AnaliseFinanceira [label=<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="4"><TR><TD BGCOLOR="#FFF8DC"><B>AnaliseFinanceira</B></TD></TR><TR><TD ALIGN="LEFT">- periodo : Periodo<BR ALIGN="LEFT"/>- /renda : BigDecimal<BR ALIGN="LEFT"/>- dataGeracao : LocalDateTime<BR ALIGN="LEFT"/></TD></TR><TR><TD ALIGN="LEFT">+ calcularDistribuicao()<BR ALIGN="LEFT"/>+ getInterpretacao() : String<BR ALIGN="LEFT"/>+ getPilaresExcedidos() : List&lt;Pilar&gt;<BR ALIGN="LEFT"/></TD></TR></TABLE>>];
+DistribuicaoPilar [label=<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="4"><TR><TD BGCOLOR="#FFF8DC"><B>DistribuicaoPilar</B></TD></TR><TR><TD ALIGN="LEFT">- pilar : Pilar<BR ALIGN="LEFT"/>- totalGasto : BigDecimal<BR ALIGN="LEFT"/>- limite : BigDecimal<BR ALIGN="LEFT"/></TD></TR><TR><TD ALIGN="LEFT">+ getPercentualUtilizado() : BigDecimal<BR ALIGN="LEFT"/>+ isExcedido() : boolean<BR ALIGN="LEFT"/></TD></TR></TABLE>>];
+Alerta [label=<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="4"><TR><TD BGCOLOR="#FFF8DC"><B><I>Alerta</I></B></TD></TR><TR><TD ALIGN="LEFT">- id : Long<BR ALIGN="LEFT"/>- mensagem : String<BR ALIGN="LEFT"/>- dataEmissao : LocalDateTime<BR ALIGN="LEFT"/>- lido : boolean<BR ALIGN="LEFT"/></TD></TR><TR><TD ALIGN="LEFT">+ marcarComoLido()<BR ALIGN="LEFT"/></TD></TR></TABLE>>];
+AlertaLimite [label=<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="4"><TR><TD BGCOLOR="#FFF8DC"><B>AlertaLimite</B></TD></TR><TR><TD ALIGN="LEFT">- pilar : Pilar<BR ALIGN="LEFT"/>- valorExcedido : BigDecimal<BR ALIGN="LEFT"/></TD></TR><TR><TD ALIGN="LEFT"> </TD></TR></TABLE>>];
+AlertaRecorrencia [label=<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="4"><TR><TD BGCOLOR="#FFF8DC"><B>AlertaRecorrencia</B></TD></TR><TR><TD ALIGN="LEFT">- proximoVencimento : LocalDate<BR ALIGN="LEFT"/></TD></TR><TR><TD ALIGN="LEFT"> </TD></TR></TABLE>>];
+PagamentoRecorrente [label=<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="4"><TR><TD BGCOLOR="#FFF8DC"><B>PagamentoRecorrente</B></TD></TR><TR><TD ALIGN="LEFT">- id : Long<BR ALIGN="LEFT"/>- descricao : String<BR ALIGN="LEFT"/>- valorMedio : BigDecimal<BR ALIGN="LEFT"/>- periodicidadeDias : int<BR ALIGN="LEFT"/>- proximoVencimento : LocalDate<BR ALIGN="LEFT"/></TD></TR><TR><TD ALIGN="LEFT">+ calcularProximoVencimento() : LocalDate<BR ALIGN="LEFT"/></TD></TR></TABLE>>];
+IdentificadorRecorrencia [label=<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="4"><TR><TD BGCOLOR="#FFF8DC"><FONT POINT-SIZE="9">«service»</FONT><BR/><B>IdentificadorRecorrencia</B></TD></TR><TR><TD ALIGN="LEFT"> </TD></TR><TR><TD ALIGN="LEFT">+ identificar(historico : List&lt;Movimentacao&gt;) : List&lt;PagamentoRecorrente&gt;<BR ALIGN="LEFT"/></TD></TR></TABLE>>];
+
+# composição (losango cheio na ponta do todo)
+Usuario -> Movimentacao [dir=both, arrowtail=diamond, arrowhead=none, taillabel="1", headlabel="0..*", label="registra"];
+Usuario -> Fatura [dir=both, arrowtail=diamond, arrowhead=none, taillabel="1", headlabel="0..*", label="envia"];
+Usuario -> PagamentoRecorrente [dir=both, arrowtail=diamond, arrowhead=none, taillabel="1", headlabel="0..*", label="possui"];
+AnaliseFinanceira -> DistribuicaoPilar [dir=both, arrowtail=diamond, arrowhead=none, taillabel="1", headlabel="3", label="contém"];
+# associações navegáveis
+Usuario -> AnaliseFinanceira [arrowhead=vee, taillabel="1", headlabel="0..*", label="solicita"];
+Usuario -> Alerta [arrowhead=vee, taillabel="1", headlabel="0..*", label="recebe"];
+Movimentacao -> Categoria [arrowhead=vee, taillabel="0..*", headlabel="1", label="classificada em"];
+Fatura -> Movimentacao [arrowhead=vee, taillabel="0..1", headlabel="0..*", label="origina"];
+PagamentoRecorrente -> Movimentacao [arrowhead=vee, taillabel="0..1", headlabel="2..*", label="baseado em"];
+AnaliseFinanceira -> Movimentacao [arrowhead=vee, taillabel="0..*", headlabel="0..*", label="considera"];
+AnaliseFinanceira -> AlertaLimite [dir=back, arrowtail=vee, arrowhead=none, taillabel="1", headlabel="0..3", label="gera"];
+PagamentoRecorrente -> AlertaRecorrencia [dir=back, arrowtail=vee, arrowhead=none, taillabel="1", headlabel="0..*", label="gera"];
+# generalização
+Alerta -> AlertaLimite [dir=back, arrowtail=empty, arrowhead=none];
+Alerta -> AlertaRecorrencia [dir=back, arrowtail=empty, arrowhead=none];
+# realização
+InterpretadorFatura -> InterpretadorFaturaPDF [dir=back, arrowtail=empty, arrowhead=none, style=dashed];
+# dependências
+Categoria -> Pilar [arrowhead=vee, style=dashed, label="«use»"];
+Movimentacao -> TipoMovimentacao [arrowhead=vee, style=dashed, label="«use»"];
+Fatura -> StatusFatura [arrowhead=vee, style=dashed, label="«use»"];
+InterpretadorFatura -> Fatura [arrowhead=vee, style=dashed, label="«parameter»"];
+IdentificadorRecorrencia -> PagamentoRecorrente [arrowhead=vee, style=dashed, label="«create»"];
+IdentificadorRecorrencia -> Movimentacao [arrowhead=vee, style=dashed, label="«parameter»"];
+
+}
