@@ -20,6 +20,7 @@ Inherits from [000-foundation/plan.md](../000-foundation/plan.md). No new backen
 | IV. Money | ✅ | Decimal throughout. Percentages kept as Decimal with 4 decimal places |
 | V. Data ownership | ✅ | Aggregation and alerts are filtered by `usuario_id`. Cross-user test in T207 |
 | VI. Simplicity | ✅ | The analysis is not persisted (derived data). Single-table alerts |
+| IX. Docker Compose | ✅ | Migration `0003` runs on `api` startup. No new service |
 
 ## Design
 

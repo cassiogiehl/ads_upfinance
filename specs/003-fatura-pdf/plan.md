@@ -23,6 +23,7 @@ Accept a PDF upload, validate it by its content, and extract text once into a `D
 | IV. Money | ✅ | `"1.234,56"` is parsed with a dedicated `parse_valor_brl` into a Decimal |
 | V. Data ownership | ✅ | Hash uniqueness is per user. 404 for other users' invoices |
 | VI. Simplicity | ⚠️ justified | The `InterpretadorFatura` strategy is the abstraction the constitution explicitly allows. Only one implementation in v1 |
+| IX. Docker Compose | ✅ | `pdfplumber` and `reportlab` go into the `api` image. Sample invoices are generated inside the container (quickstart). No new service |
 
 ## Design
 

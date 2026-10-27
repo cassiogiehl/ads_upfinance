@@ -4,9 +4,12 @@ Validates the feature end to end on a fresh checkout.
 
 ## Run
 
+Prerequisites: Git, Docker Engine and Docker Compose v2. Nothing else is installed on the host (Constitution IX).
+
 ```bash
-docker compose up --build -d
-docker compose exec api alembic upgrade head
+cp .env.example .env
+docker compose up --build -d     # api applies the migrations on startup
+docker compose ps                # db healthy, api and web running
 # API docs: http://localhost:8000/docs   SPA: http://localhost:5173
 ```
 
@@ -30,6 +33,8 @@ docker compose exec api alembic upgrade head
 ## Automated
 
 ```bash
-cd backend && pytest -q
-cd frontend && npm test
+docker compose run --rm --no-deps api pytest -q
+docker compose run --rm --no-deps web npm test
 ```
+
+Teardown: `docker compose down` keeps the data; `docker compose down -v` also removes the database volume.

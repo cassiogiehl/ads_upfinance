@@ -20,6 +20,7 @@ Inherits the stack and structure from [000-foundation/plan.md](../000-foundation
 | IV. Money | ✅ | `NUMERIC(12,2)`, Decimal in Python, string in JSON (research R4) |
 | V. Data ownership | ✅ | Every query filters by `usuario_id`. Cross-user test T105 |
 | VI. Simplicity | ✅ | No new abstractions |
+| IX. Docker Compose | ✅ | Migration `0002` runs on `api` startup. Tests run with `docker compose run --rm --no-deps api pytest` |
 
 ## Flow (AD01 → code)
 

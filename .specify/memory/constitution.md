@@ -63,7 +63,7 @@ The 50-30-20 distribution is fixed and cannot be configured (RN004). The financi
 | Frontend | React 18 + TypeScript + Vite, React Router, TanStack Query |
 | Frontend tests | Vitest + Testing Library |
 | UI | Responsive, mobile-first, works on phone and desktop browsers (RNF001, RNF002) |
-| Runtime | Docker Compose: `db`, `api`, `web` |
+| Runtime | Docker Compose: `db`, `api`, `web` (see IX) |
 | CI | Lint (ruff, eslint), type-check (mypy, tsc), tests on every push |
 
 ## VIII. Conventions
@@ -72,7 +72,17 @@ The 50-30-20 distribution is fixed and cannot be configured (RN004). The financi
 - **API:** REST + JSON with snake_case fields. Errors use the shape `{"code": "UPPER_SNAKE", "message": "...", "details": {...}}`. Each FA has a stable `code`.
 - **Layers:** `api/` (routers, HTTP only) → `services/` (use-case logic and business rules) → `models/` (ORM). Business rules live only in `services/`.
 
+## IX. Everything runs in Docker Compose
+
+- The only host prerequisites are Git, Docker Engine and Docker Compose v2. Python, Node.js and PostgreSQL are never installed on the host to build, run or test the application.
+- The whole system is defined in one `docker-compose.yml` with exactly the services `db` (PostgreSQL 16), `api` (FastAPI) and `web` (React SPA). Each application service is built from its own `Dockerfile` (`backend/Dockerfile`, `frontend/Dockerfile`).
+- From a fresh clone, `docker compose up --build` brings up a working application with no other step: `api` waits for `db` to be healthy (`depends_on: condition: service_healthy`), then applies the Alembic migrations, including the category seed, before it starts serving.
+- Every developer and CI command runs inside a Compose service, never on the host: tests (`docker compose run --rm api pytest`, `docker compose run --rm web npm test`), lint, type-check, migrations and fixture generation.
+- CI runs the same Compose commands that developers run, so a green CI means the containers work.
+- Configuration comes only from environment variables. `.env.example` is committed with safe development defaults. `.env` and real secrets are never committed.
+- In development, source code is bind-mounted into `api` and `web` with hot reload. The database uses a named volume, so data survives `docker compose down` and is removed only by `docker compose down -v`.
+
 ## Governance
 
 - This constitution takes precedence over feature plans. Changing it requires updating the version below and re-running the Constitution Check of every open plan.
-- Version: 1.0.0. Ratified: 2026-10-25.
+- Version: 1.1.0. Ratified: 2026-10-25. Last amended: 2026-10-26 (added IX).

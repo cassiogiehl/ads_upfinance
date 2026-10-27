@@ -4,6 +4,8 @@ These specs turn the Sprint 2–4 analysis into buildable features, following th
 
 ## How to use
 
+The application runs entirely in Docker Compose (Constitution IX). Git, Docker Engine and Docker Compose v2 are the only host prerequisites, and every run, test, lint and migration command is a `docker compose` command.
+
 1. Pick the next feature in order (000 → 004).
 2. Read `spec.md` (what and why), then `plan.md` (how), `research.md`, `data-model.md` and `contracts/openapi.yaml`.
 3. Resolve or accept its `[NEEDS CLARIFICATION]` items (see below).
@@ -26,7 +28,7 @@ Every file per feature:
 
 | # | Feature | Sprint user stories | RF | UC | AD | Priority |
 |---|---|---|---|---|---|---|
-| [000](000-foundation/spec.md) | Foundation: account, auth, category catalog, skeleton | — | RF003 | — | — | Prerequisite |
+| [000](000-foundation/spec.md) | Foundation: account, auth, category catalog, skeleton, Docker Compose runtime | — | RF003 | — | — | Prerequisite |
 | [001](001-movimentacoes/spec.md) | Register, categorize and view movements | US01, US02, US03 | RF001–RF004 | UC01–UC03 | AD01 | High |
 | [002](002-analise-50-30-20/spec.md) | 50-30-20 analysis and limit alerts | US04, US05 | RF005–RF007 | UC04–UC06 | AD02 | High |
 | [003](003-fatura-pdf/spec.md) | Credit-card invoice upload and interpretation | US06, US07 | RF008, RF009 | UC07, UC08 | AD03 | Medium |
@@ -83,8 +85,9 @@ Each one has a provisional default in the feature's `research.md`, so the work i
 ```
 .specify/memory/constitution.md
 specs/                     # this folder
-backend/                   # FastAPI (see 000-foundation/plan.md)
-frontend/                  # React + Vite + TS
-docker-compose.yml
+backend/                   # FastAPI + Dockerfile (see 000-foundation/plan.md)
+frontend/                  # React + Vite + TS + Dockerfile
+docker-compose.yml         # db, api, web: the only way to run the app
+.env.example
 Sprint 2 - … .md, Sprint 3 - … .md, Sprint4_… .md   # original analysis (read-only)
 ```

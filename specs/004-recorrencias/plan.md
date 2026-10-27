@@ -23,6 +23,7 @@ Implement `IdentificadorRecorrencia` as a pure domain function (`domain/recorren
 | IV. Money | ✅ | `valor_medio` is the Decimal mean, quantized to 0.01 half-up |
 | V. Data ownership | ✅ | History query and recurrences filtered by `usuario_id`. Cross-user test |
 | VI. Simplicity | ✅ | No job scheduler (lazy reminders, research R4). FK instead of a link table (research R7) |
+| IX. Docker Compose | ✅ | Migration `0005` runs on `api` startup. No scheduler container (research R4) |
 
 ## Design
 

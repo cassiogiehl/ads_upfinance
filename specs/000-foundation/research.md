@@ -29,4 +29,16 @@
 ## R4: Database for tests
 
 - **Decision:** PostgreSQL in Docker for development. SQLite in-memory for unit and integration tests. The schema must stay portable: `NUMERIC(12,2)`, ENUMs stored as `VARCHAR` with CHECK constraints instead of native PG enums.
-- **Rationale:** fast tests without Docker in CI. Using `VARCHAR` with CHECK keeps Alembic migrations identical on both databases.
+- **Rationale:** fast tests that need no running `db` service (`docker compose run --rm --no-deps api pytest`, see R5). Using `VARCHAR` with CHECK keeps Alembic migrations identical on both databases.
+
+## R5: Docker Compose as the only runtime
+
+- **Decision:** the whole application runs in Docker Compose (Constitution IX). The host only needs Git, Docker Engine and Docker Compose v2.
+  - `db`: `postgres:16`, named volume `pgdata`, healthcheck `pg_isready`, port 5432 published for local inspection only.
+  - `api`: built from `backend/Dockerfile` (`python:3.12-slim`, runtime and dev dependencies so tests and lint run in the same image). Its entrypoint runs `alembic upgrade head` and then `uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload`. `depends_on: db: condition: service_healthy`. `./backend` is bind-mounted to `/app`. Port 8000.
+  - `web`: built from `frontend/Dockerfile` (`node:22-alpine`, `npm ci`). Runs `vite --host 0.0.0.0 --port 5173`. `./frontend` is bind-mounted to `/app`, with an anonymous volume on `/app/node_modules` so the host never needs its own `node_modules`. The Vite dev server proxies `/api` to `http://api:8000`, so the SPA uses relative URLs. Port 5173.
+  - Configuration: `.env.example` (committed) holds `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`, `DATABASE_URL`, `JWT_SECRET` and `JWT_TTL_HOURS` with development values. Compose reads `.env`, which is git-ignored.
+  - Commands: `docker compose run --rm --no-deps api pytest`, `… api ruff check .`, `… api mypy app`, `docker compose run --rm --no-deps web npm test`, `… web npm run lint`, `… web npx tsc --noEmit`.
+- **Rationale:** one command brings up the same environment on every machine and in CI, nobody fights local Python or Node versions, and the automatic migration on startup means a fresh clone works with `docker compose up --build`.
+- **Alternatives considered:** running backend and frontend on the host with only the database in Docker (setup differs per machine and drifts from CI); a separate migration service (one more service against Constitution VI, for no gain at this size); serving a production build of the SPA from nginx in v1 (not needed for the course scope; it can be added later as a build stage of `frontend/Dockerfile` without changing the services).
+

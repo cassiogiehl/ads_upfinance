@@ -27,5 +27,5 @@ curl -s "localhost:8000/api/v1/movimentacoes?tipo=SAIDA" -H "$H" | jq '.total'
 ## Automated
 
 ```bash
-cd backend && pytest tests -k movimentac -q
+docker compose run --rm --no-deps api pytest tests -k movimentac -q
 ```

@@ -4,7 +4,7 @@
 
 ## Summary
 
-Set up the monorepo, the backend and frontend skeletons, Docker Compose and CI. Implement registration, login and JWT auth, the seeded category catalog and the fixed `Pilar` enum. Every later feature builds on this skeleton.
+Set up the monorepo, the backend and frontend skeletons, the Docker Compose runtime (the only way to run, test and lint the app, Constitution IX) and CI. Implement registration, login and JWT auth, the seeded category catalog and the fixed `Pilar` enum. Every later feature builds on this skeleton.
 
 ## Technical Context
 
@@ -14,7 +14,7 @@ Set up the monorepo, the backend and frontend skeletons, Docker Compose and CI. 
 | Dependencies | fastapi, uvicorn, sqlalchemy 2, alembic, pydantic-settings, pwdlib[argon2], pyjwt, psycopg[binary]; react, react-router, @tanstack/react-query, vite |
 | Storage | PostgreSQL 16 (dev and prod), SQLite in-memory (tests) |
 | Testing | pytest, httpx TestClient, Vitest, Testing Library |
-| Target | Linux containers; evergreen desktop and mobile browsers |
+| Target | Docker Compose (`db`, `api`, `web`), host needs only Docker; evergreen desktop and mobile browsers |
 | Constraints | Money as Decimal; schema portable across PG and SQLite (research R4) |
 
 ## Constitution Check
@@ -28,6 +28,7 @@ Set up the monorepo, the backend and frontend skeletons, Docker Compose and CI. 
 | V. Data ownership | ✅ | `get_current_user` dependency. Cross-user test helper in conftest |
 | VI. Simplicity | ✅ | No repository layer: services use the SQLAlchemy `Session` directly |
 | VII. Baseline | ✅ | Matches the table |
+| IX. Docker Compose | ✅ | `docker-compose.yml` with `db`, `api`, `web`; migrations on `api` startup; tests, lint and CI run in containers (research R5) |
 
 ## Architecture
 
@@ -95,13 +96,18 @@ frontend/
     ├── pages/LoginPage.tsx, RegisterPage.tsx, HomePage.tsx
     ├── components/Layout.tsx          # responsive shell with nav
     └── styles/                        # mobile-first CSS
+backend/Dockerfile                     # python:3.12-slim, entrypoint: alembic upgrade head → uvicorn
+backend/entrypoint.sh
+frontend/Dockerfile                    # node:22-alpine, vite dev on 0.0.0.0
 docker-compose.yml                     # db, api, web
+.env.example                           # dev defaults; .env is git-ignored
 .github/workflows/ci.yml               # (or Azure Pipelines equivalent)
 ```
 
 ## Key Design Notes
 
-- API prefix: `/api/v1`. CORS allows the Vite dev origin.
+- API prefix: `/api/v1`. The Vite dev server proxies `/api` to `http://api:8000`, so the browser sees a single origin. CORS still allows the Vite origin for direct calls.
+- Runtime (research R5): `docker compose up --build` is the only start command. `api` waits for a healthy `db`, applies migrations, then serves. All tests and linters run with `docker compose run --rm --no-deps <service> …`.
 - `Pilar` is a `StrEnum` with a `percentual` property that returns a `Decimal`, and `calcular_limite(renda)`. This mirrors the Java example in Sprint 4 §3.5.
 - The category seed runs as Alembic data migration `0001`, so every environment has the same catalog.
 - A test fixture `other_user_headers` exists from the start so every later feature can write cross-user isolation tests (SC-002).
