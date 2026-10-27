@@ -25,14 +25,14 @@
 
 ## Phase 3: Core implementation
 
-- [ ] T014 [P] Create `backend/app/domain/enums.py` with `Pilar` (StrEnum, `percentual`, `label`, `calcular_limite`) and `TipoMovimentacao` (makes T013 pass)
-- [ ] T015 [P] Create `backend/app/models/usuario.py` and `backend/app/models/categoria.py` per data-model.md, including the CHECK constraints
-- [ ] T016 Create the Alembic migration `0001_usuario_categoria.py`: tables plus the category seed from research R2
-- [ ] T017 Create `backend/app/core/security.py`: argon2 hash and verify, JWT encode and decode (HS256, TTL from settings)
-- [ ] T018 Create `backend/app/services/auth_service.py`: `register` (normalize email, check uniqueness) and `authenticate`
-- [ ] T019 Create `backend/app/deps.py`: `get_db` and `get_current_user` (401 `NAO_AUTENTICADO`)
-- [ ] T020 [P] Create `backend/app/schemas/auth.py` and `backend/app/schemas/categoria.py`
-- [ ] T021 Create routers `auth.py`, `usuarios.py`, `categorias.py` and `pilares.py` in `backend/app/api/routers/` and register them in `main.py` (makes T010–T012 pass)
+- [x] T014 [P] Create `backend/app/domain/enums.py` with `Pilar` (StrEnum, `percentual`, `label`, `calcular_limite`) and `TipoMovimentacao` (makes T013 pass)
+- [x] T015 [P] Create `backend/app/models/usuario.py` and `backend/app/models/categoria.py` per data-model.md, including the CHECK constraints
+- [x] T016 Create the Alembic migration `0001_usuario_categoria.py`: tables plus the category seed from research R2
+- [x] T017 Create `backend/app/core/security.py`: argon2 hash and verify, JWT encode and decode (HS256, TTL from settings)
+- [x] T018 Create `backend/app/services/auth_service.py`: `register` (normalize email, check uniqueness) and `authenticate`
+- [x] T019 Create `backend/app/deps.py`: `get_db` and `get_current_user` (401 `NAO_AUTENTICADO`)
+- [x] T020 [P] Create `backend/app/schemas/auth.py` and `backend/app/schemas/categoria.py`
+- [x] T021 Create routers `auth.py`, `usuarios.py`, `categorias.py` and `pilares.py` in `backend/app/api/routers/` and register them in `main.py` (makes T010–T012 pass)
 
 ## Phase 4: Frontend
 

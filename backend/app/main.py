@@ -1,6 +1,7 @@
 from fastapi import APIRouter, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.api.routers import auth, categorias, pilares, usuarios
 from app.core.config import get_settings
 from app.core.errors import register_exception_handlers
 
@@ -19,7 +20,8 @@ def create_app() -> FastAPI:
     register_exception_handlers(app)
 
     api = APIRouter(prefix=API_PREFIX)
-    # Feature routers are included here (000 T021 onward).
+    for router in (auth.router, usuarios.router, categorias.router, pilares.router):
+        api.include_router(router)
     app.include_router(api)
     return app
 

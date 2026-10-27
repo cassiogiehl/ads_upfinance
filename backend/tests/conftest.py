@@ -5,7 +5,7 @@ from typing import Any
 
 # Settings are read at import time; tests never touch PostgreSQL (research R4).
 os.environ.setdefault("DATABASE_URL", "sqlite://")
-os.environ.setdefault("JWT_SECRET", "test-secret-not-for-production")
+os.environ.setdefault("JWT_SECRET", "test-secret-not-for-production-use-only")
 
 import pytest  # noqa: E402
 from alembic import command  # noqa: E402

@@ -51,7 +51,7 @@ async def validation_error_handler(_: Request, exc: Exception) -> JSONResponse:
         loc = [str(part) for part in err["loc"] if part not in ("body", "query", "path")]
         campos[".".join(loc) or "_"] = err["msg"]
     return error_response(
-        status.HTTP_422_UNPROCESSABLE_ENTITY,
+        status.HTTP_422_UNPROCESSABLE_CONTENT,
         "DADOS_INVALIDOS",
         "Dados inválidos.",
         {"campos": campos},
