@@ -1,0 +1,20 @@
+/* Mobile-first base (RNF001, RNF002). Wider layouts are added with min-width queries. */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  line-height: 1.5;
+}
+
+.app {
+  padding: 1rem;
+}

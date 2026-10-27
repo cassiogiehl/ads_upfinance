@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+# Only Docker Compose commands, the same ones developers run (Constitution IX).
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Prepare environment
+        run: |
+          cp .env.example .env
+          # containers run as UID 1000 and write caches through the bind mounts
+          sudo chown -R 1000:1000 .
+
+      - name: Build images
+        run: docker compose build api web
+
+      - name: Backend lint
+        run: docker compose run --rm --no-deps api ruff check .
+
+      - name: Backend type-check
+        run: docker compose run --rm --no-deps api mypy app
+
+      - name: Backend tests
+        run: docker compose run --rm --no-deps api pytest -q
+
+      - name: Frontend type-check
+        run: docker compose run --rm --no-deps web npm run typecheck
+
+      - name: Frontend lint
+        run: docker compose run --rm --no-deps web npm run lint
+
+      - name: Frontend tests
+        run: docker compose run --rm --no-deps web npm test
+
+      - name: Frontend build
+        run: docker compose run --rm --no-deps web npx vite build
