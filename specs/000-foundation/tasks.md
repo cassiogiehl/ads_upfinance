@@ -9,7 +9,7 @@
 - [x] T001 Create `backend/pyproject.toml` with the dependencies from plan.md, plus ruff, mypy and pytest config
 - [x] T002 [P] Create the `frontend/` Vite React TS app (`package.json`, `vite.config.ts`, `tsconfig.json`) with react-router, @tanstack/react-query, vitest and @testing-library/react
 - [x] T003 [P] Create `backend/Dockerfile` and `backend/entrypoint.sh` (`alembic upgrade head`, then uvicorn with `--reload`), and `frontend/Dockerfile` (`npm ci`, `vite --host 0.0.0.0`), per research R5. Add `.dockerignore` files
-- [x] T004 [P] Create the CI workflow. It runs only Docker Compose commands: `docker compose build`, then in `api` ruff, mypy, pytest, and in `web` `tsc --noEmit`, eslint, vitest, `vite build` (Constitution IX)
+- [ ] T004 [P] Create the CI workflow. It runs only Docker Compose commands: `docker compose build`, then in `api` ruff, mypy, pytest, and in `web` `tsc --noEmit`, eslint, vitest, `vite build` (Constitution IX)
 - [x] T005 Create `backend/app/core/config.py` (pydantic-settings), `backend/app/db.py` (engine, SessionLocal, Base) and `backend/app/main.py` (app factory, `/api/v1` prefix, CORS)
 - [x] T006 Create `backend/app/core/errors.py` with `DomainError` and handlers that produce `{code, message, details}`, mapping `RequestValidationError` to 422 `DADOS_INVALIDOS`
 - [x] T007 Initialize Alembic (`backend/alembic.ini`, `backend/alembic/env.py`) using `Base.metadata`
