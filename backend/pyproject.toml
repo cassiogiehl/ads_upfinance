@@ -48,6 +48,7 @@ select = ["E", "F", "W", "I", "B", "UP", "SIM"]
 [tool.ruff.lint.isort]
 # ./alembic (migrations folder) is not the alembic package
 known-third-party = ["alembic"]
+known-first-party = ["app", "tests"]
 
 [tool.mypy]
 python_version = "3.12"

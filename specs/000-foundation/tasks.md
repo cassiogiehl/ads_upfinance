@@ -18,10 +18,10 @@
 
 ## Phase 2: Tests first (they must fail)
 
-- [ ] T010 [P] [US1] Contract test `POST /auth/register` (201, 409 `EMAIL_JA_CADASTRADO`, 422) in `backend/tests/contract/test_auth_register.py`
-- [ ] T011 [P] [US2] Contract test `POST /auth/login` (200, 401 `CREDENCIAIS_INVALIDAS`, generic message) and `GET /usuarios/me` (401 without a token) in `backend/tests/contract/test_auth_login.py`
-- [ ] T012 [P] [US3] Contract test `GET /categorias` and `GET /pilares` in `backend/tests/contract/test_categorias.py`: SAIDA categories have a pilar, ENTRADA categories have null, every pilar has ≥ 1 category, `?tipo=` filters
-- [ ] T013 [P] Unit test `Pilar.calcular_limite(Decimal("10000"))` returns `5000.00`, `3000.00` and `2000.00` (RN003 example) in `backend/tests/unit/test_pilar.py`
+- [x] T010 [P] [US1] Contract test `POST /auth/register` (201, 409 `EMAIL_JA_CADASTRADO`, 422) in `backend/tests/contract/test_auth_register.py`
+- [x] T011 [P] [US2] Contract test `POST /auth/login` (200, 401 `CREDENCIAIS_INVALIDAS`, generic message) and `GET /usuarios/me` (401 without a token) in `backend/tests/contract/test_auth_login.py`
+- [x] T012 [P] [US3] Contract test `GET /categorias` and `GET /pilares` in `backend/tests/contract/test_categorias.py`: SAIDA categories have a pilar, ENTRADA categories have null, every pilar has ≥ 1 category, `?tipo=` filters
+- [x] T013 [P] Unit test `Pilar.calcular_limite(Decimal("10000"))` returns `5000.00`, `3000.00` and `2000.00` (RN003 example) in `backend/tests/unit/test_pilar.py`
 
 ## Phase 3: Core implementation
 
