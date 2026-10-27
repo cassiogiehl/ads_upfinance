@@ -45,8 +45,8 @@
 
 ## Phase 5: Polish
 
-- [ ] T028 Write `README.md` at the repo root: Docker and Docker Compose as the only prerequisites, `cp .env.example .env`, `docker compose up --build`, the `docker compose run` commands for tests and lint, and a link to `specs/`
-- [ ] T029 Run quickstart.md manually on a machine with only Docker installed, including the 360 px check (SC-004)
+- [x] T028 Write `README.md` at the repo root: Docker and Docker Compose as the only prerequisites, `cp .env.example .env`, `docker compose up --build`, the `docker compose run` commands for tests and lint, and a link to `specs/`
+- [x] T029 Run quickstart.md manually on a machine with only Docker installed, including the 360 px check (SC-004)
 - [ ] T030 Confirm CI is green
 
 ## Dependencies
