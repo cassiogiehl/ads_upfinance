@@ -36,12 +36,12 @@
 
 ## Phase 4: Frontend
 
-- [ ] T022 Create `frontend/src/api/client.ts`: base URL, bearer token injection, parsing of the error shape into a typed `ApiError`
-- [ ] T023 Create `frontend/src/auth/AuthContext.tsx` (token in memory plus sessionStorage, login, register, logout) and `RequireAuth.tsx` (redirect to `/login`, keep the return path)
-- [ ] T024 [P] [US1] Create `frontend/src/pages/RegisterPage.tsx` with field-level errors and the duplicate-email message
-- [ ] T025 [P] [US2] Create `frontend/src/pages/LoginPage.tsx` with the generic error message
-- [ ] T026 [US4] Create `frontend/src/components/Layout.tsx`: a responsive shell with nav (Movimentações, Análise, Faturas, Recorrências, Alertas) that collapses into a bottom bar or hamburger below 640 px
-- [ ] T027 [P] Component tests for LoginPage and RegisterPage in `frontend/src/pages/__tests__/`
+- [x] T022 Create `frontend/src/api/client.ts`: base URL, bearer token injection, parsing of the error shape into a typed `ApiError`
+- [x] T023 Create `frontend/src/auth/AuthContext.tsx` (token in memory plus sessionStorage, login, register, logout) and `RequireAuth.tsx` (redirect to `/login`, keep the return path)
+- [x] T024 [P] [US1] Create `frontend/src/pages/RegisterPage.tsx` with field-level errors and the duplicate-email message
+- [x] T025 [P] [US2] Create `frontend/src/pages/LoginPage.tsx` with the generic error message
+- [x] T026 [US4] Create `frontend/src/components/Layout.tsx`: a responsive shell with nav (Movimentações, Análise, Faturas, Recorrências, Alertas) that collapses into a bottom bar or hamburger below 640 px
+- [x] T027 [P] Component tests for LoginPage and RegisterPage in `frontend/src/pages/__tests__/`
 
 ## Phase 5: Polish
 
